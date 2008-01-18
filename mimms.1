@@ -1,0 +1,66 @@
+.TH mimms 1 "2006-08-17" "MiMMS isn't an MMS Sender"
+.SH NAME
+mimms \- MMS (e.g. mms://) stream downloader
+.SH SYNOPSIS
+.BI "mimms [" options "] <" url "> [" output "]"
+.SH DESCRIPTION
+MiMMS is a program designed to allow you to download streams using the MMS protocol
+and save them to your computer, as opposed to watching them live. Similar functionality
+is available in full media player suites such as Xine and MPlayer, but MiMMS is quick
+and easy to use, and for the time being, remains a useful program.
+.SH OPTIONS
+.TP
+.B "-c, --clobber"
+Allow overwriting an existing file; by default, this is not allowed.
+.TP 
+.BI "-t, --time <" minutes ">"
+Record for the given number of minutes;
+by default, record until the end.
+.TP
+.B"-v, --verbose"
+Print verbose debug messages on stderr.
+.TP
+.B "-q, --quiet"
+Don't print status messages on stdout.
+.TP
+.B "-h, --help"
+Show this help message on stdout.
+.SH URL
+.TP
+.B mms (MMS)
+i.e. mms://<host>[:port]/<path>
+will try all supported methods.
+.TP
+.B mmst (MMS TCP)
+i.e. mmst://<host>[:port]/<path>
+will only try TCP method.
+.TP
+.B mmsu (MMS UDP)
+Not currently supported; (poorly suited
+for streaming downloads anyway).
+.TP
+.B mmsh (MMS HTTP)
+i.e. mmsh://<host>[:port]/<path>
+will only try HTTP method.
+.TP
+.B http (ASX HTTP)
+i.e. http://<host>[:port]/<path>[.asx]
+only the first supported URL is used.
+.TP
+.B - (stdin)
+i.e. look for an MMS URL on stdin;
+only the first supported URL is used.
+.SH OUTPUT
+.TP
+.B none
+Streams to file named based on the URL.
+.TP
+.B filename
+Streams to the given file.
+.TP
+.B - (stdout)
+Streams to stdout. (Implies 
+.B --quiet
+)
+.SH AUTHOR
+Wesley J. Landaker <wjl@icecavern.net>

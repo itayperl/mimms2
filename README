@@ -1,0 +1,30 @@
+MiMMS 2.x - MiMMS isn't an MMS Message Sender.
+It's an MMS (e.g. mms://) stream downloader.
+
+MiMMS is a program designed to allow you to download streams using the MMS protocol
+and save them to your computer, as opposed to watching them live. Similar functionality
+is available in full media player suites such as Xine and MPlayer, but MiMMS is quick
+and easy to use, and for the time being, remains a useful program.
+
+Originally, MiMMS was forked directly from the last known version of mmsclient, which was
+for years unmaintained. MiMMS started with the following goals:
+
+  - Keep a working copy of "mmsclient" (now "MiMMS") maintained and working.
+  - Fix lots of the bugs that were in mmsclient
+  - Eventually extend the functionality of the program
+
+With the current 2.x series, MiMMS shares no code with mmsclient, and actually does all of
+it's MMS operations using libmms, a new library based off of the xine-improved mmsclient
+code, which is designed to allow multiple implementations of MMS clients without requiring
+a fragmented code base. At this point, MiMMS is freed from the details of the horrendous
+MMS protocol, and can focus on usability.
+
+Currently MiMMS has the following dependencies:
+
+  * libmms   (required) - <http://sourceforge.net/projects/libmms>
+  * Qt4 Core (required) - <http://www.trolltech.com/developer/downloads/qt/>
+  * wget     (optional) - <http://www.gnu.org/software/wget/>
+    - (necessary if you want to use http:// URLs to get e.g. ASX files)
+
+Of course, you also need any dependencies of the above software, as well as a more-or-less
+standard POSIX environment since we depend on make, install, etc. being available during build.
