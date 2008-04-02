@@ -18,9 +18,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-from libmms import Stream
-from time import time
+VERSION="3.0"
+
+import os
 import sys
+
+from libmms import Stream
+from optparse import OptionParser
+from time import time
+from urlparse import urlparse
 
 class Timer:
   def __init__(self):
@@ -51,19 +57,35 @@ def seconds_to_string(seconds):
   s = seconds % 60
   return "%02d:%02d:%02d" % (h, m ,s)
 
-def choose_filename(filename):
-  pass
+def get_filename(options):
+  if options.filename: filename = options.filename
+  else:
+    filename = os.path.basename(urlparse(options.url).path)
+    if not filename.endwidth(".wmv"): filename += ".wmv"
+  if options.clobber: return filename
+  new_filename = filename
+  i = 1
+  while os.path.exists(new_filename):
+    new_filename = "%s.%d" % (filename, i)
+  return new_filename
 
-def download(url, bandwidth, filename, timeout=0):
-  stream = Stream(url, bandwidth)
+def download(options):
+  status = "Connecting ..."
+  if not options.quiet: print status,
+  stream = Stream(options.url, options.bandwidth)
+  filename = get_filename()
   f = open(filename, "w")
+
+  clear = " " * len(status)
+  status = "%s => %s" % (url, filename)
+  if not options.quiet: print "\r", clear, "\r", status
+  sys.stdout.flush()  
 
   timeout_timer  = Timer()
   duration_timer = Timer()
 
   bytes_in_duration = 0
   bytes_per_second  = 0
-  status = ""
 
   for data in stream.data():
     f.write(data)
@@ -89,34 +111,54 @@ def download(url, bandwidth, filename, timeout=0):
         seconds_to_string(remaining)
         )
 
-      print "\r", clear, "\r", status,
+      if not options.quiet: print "\r", clear, "\r", status,
       sys.stdout.flush()
 
-      if timeout and timeout_timer.elapsed() > timeout:
+      if options.time and timeout_timer.elapsed() > (options.time*60):
         raise Timeout
 
   f.close()
   stream.close()
     
-if __name__ == "__main__":
-  download("mms://202.96.114.251/lstv", "output.wmv", 128*1024)
+usage = "usage: %prog [options] <url> [filename]"
+parser = OptionParser(usage=usage,
+                      version=("%%prog %s" % VERSION),
+                      description="mimms is an mms (e.g. mms://) stream downloader")
+parser.add_option("-c", "--clobber",
+                  action="store_true", dest="clobber",
+                  help="automatically overwrite a existing files")
+parser.add_option("-b", "--bandwidth",
+                  type="float", dest="bandwidth",
+                  help="the desired bandwidth for stream selection in BANDWIDTH bytes/s")
+parser.add_option("-t", "--time",
+                  type="int", dest="time",
+                  help="stop downloading after TIME minutes")
+parser.add_option("-v",
+                  action="store_true", dest="verbose",
+                  help="print verbose debug messages to stderr")
+parser.add_option("-q",
+                  action="store_true", dest="quiet",
+                  help="don't print progress messages to stdout")
 
-##class ProgressThread(Thread):
-
-##  def __init__(self, total):
-##    Thread.__init__(self)
-##    self.queue = Queue(10)
-##    self.total = total
-##    self.count = 0
-
-##  def add(self, count):
-##    self.queue.put(count)
-
-##  def run(self):
-##    while True:
-##      new = self.queue.get()
-##      if new == -1: return
-##      self.count += new
-##      print "\r"
-      
+parser.set_defaults(time=0, bandwidth=1e6)
+(options, args) = parser.parse_args()
+if len(args) < 1:
+  parser.error("url must be specified")
+elif not args[0].startswith("mms"):
+  parser.error("only mms urls are supported")
+elif len(args) > 2:
+  parser.error("unknown extra arguments: %s" % ' '.join(args[2:]))
+ options.url = args[0]
+if len(args) > 2: options.filename = args[1]
   
+try:
+  #"mms://202.96.114.251/lstv", "output.wmv", 128*1024)
+  download(options)
+except Timeout:
+  if not options.quiet:
+    print
+    print "Download stopped after user-specified timeout."
+else:
+  if not options.quiet:
+    print
+    print "Download complete!"
