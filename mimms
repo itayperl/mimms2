@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.5
 # -*- coding: utf-8 -*-
 #
 # mimms - mms stream downloader
@@ -61,23 +61,26 @@ def get_filename(options):
   if options.filename: filename = options.filename
   else:
     filename = os.path.basename(urlparse(options.url).path)
-    if not filename.endwidth(".wmv"): filename += ".wmv"
+    if not filename.endswith(".wmv"): filename += ".wmv"
   if options.clobber: return filename
   new_filename = filename
   i = 1
   while os.path.exists(new_filename):
     new_filename = "%s.%d" % (filename, i)
+    i += 1
   return new_filename
 
 def download(options):
   status = "Connecting ..."
   if not options.quiet: print status,
+  sys.stdout.flush()  
+
   stream = Stream(options.url, options.bandwidth)
-  filename = get_filename()
+  filename = get_filename(options)
   f = open(filename, "w")
 
   clear = " " * len(status)
-  status = "%s => %s" % (url, filename)
+  status = "%s => %s" % (options.url, filename)
   if not options.quiet: print "\r", clear, "\r", status
   sys.stdout.flush()  
 
@@ -102,6 +105,10 @@ def download(options):
       else:
         length    = -1
         remaining = -1
+
+      if options.time:
+        if remaining < 0 or options.time < remaining:
+          remaining = options.time*60 - timeout_timer.elapsed()
 
       clear = " " * len(status)
       status = "%s / %s (%s/s, %s remaining)" % (
@@ -148,8 +155,10 @@ elif not args[0].startswith("mms"):
   parser.error("only mms urls are supported")
 elif len(args) > 2:
   parser.error("unknown extra arguments: %s" % ' '.join(args[2:]))
- options.url = args[0]
+
+options.url = args[0]
 if len(args) > 2: options.filename = args[1]
+else: options.filename = None
   
 try:
   #"mms://202.96.114.251/lstv", "output.wmv", 128*1024)
