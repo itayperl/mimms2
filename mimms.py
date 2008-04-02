@@ -1,81 +1,122 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+#
+# mimms - mms stream downloader
+# Copyright © 2006 Wesley J. Landaker <wjl@icecavern.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-from ctypes import *
+from libmms import Stream
+from time import time
+import sys
 
-libmms = cdll.LoadLibrary("libmms.so.0")
+class Timer:
+  def __init__(self):
+    self.start = time()
 
-# opening and closing the stream
-libmms.mmsx_connect.argtypes = [c_void_p, c_void_p, c_char_p, c_int]
-libmms.mmsx_connect.restype = c_void_p
+  def restart(self):
+    elapsed = self.elapsed()
+    self.start = time()
+    return elapsed
 
-libmms.mmsx_close.argtypes = [c_void_p]
-libmms.mmsx_close.restype = None
+  def elapsed(self):
+    return time() - self.start
 
-# querying length and position
-libmms.mmsx_get_current_pos.argtypes = [c_void_p]
-libmms.mmsx_get_current_pos.restype = c_longlong
+class Timeout(Exception): pass
 
-libmms.mmsx_get_length.argtypes = [c_void_p]
-libmms.mmsx_get_length.restype = c_uint
+def bytes_to_string(bytes):
+  if   bytes < 0:       return "∞ B"
+  if   bytes < 1024:    return "%.2f B"   % (bytes)
+  elif bytes < 1024**2: return "%.2f KiB" % (bytes/1024.0)
+  elif bytes < 1024**3: return "%.2f MiB" % (bytes/1024.0**2)
+  else:                 return "%.2f GiB" % (bytes/1024.0**3)
 
-libmms.mmsx_get_time_length.argtypes = [c_void_p]
-libmms.mmsx_get_time_length.restype = c_double
+def seconds_to_string(seconds):
+  if seconds < 0: return "∞ s"
 
-# seeking
-libmms.mmsx_get_seekable.argtypes = [c_void_p]
-libmms.mmsx_get_seekable.restype = c_int
+  h = seconds // 60**2
+  m = (seconds % 60**2) // 60
+  s = seconds % 60
+  return "%02d:%02d:%02d" % (h, m ,s)
 
-libmms.mmsx_seek.argtypes = [c_void_p, c_void_p, c_longlong, c_int]
-libmms.mmsx_seek.restype = c_longlong
+def choose_filename(filename):
+  pass
 
-libmms.mmsx_time_seek.argtypes = [c_void_p, c_void_p, c_double]
-libmms.mmsx_time_seek.restype = c_int
+def download(url, bandwidth, filename, timeout=0):
+  stream = Stream(url, bandwidth)
+  f = open(filename, "w")
 
-# reading data
-libmms.mmsx_read.argtypes = [c_void_p, c_void_p, c_char_p, c_int]
-libmms.mmsx_read.restype = c_int
+  timeout_timer  = Timer()
+  duration_timer = Timer()
 
-class MMSError(Exception): pass
+  bytes_in_duration = 0
+  bytes_per_second  = 0
+  status = ""
 
-class MMSStream:
-
-  def __init__(self, url, bandwidth):
-    self.mms = libmms.mmsx_connect(None, None, url, bandwidth)
-    if not self.mms:
-      raise MMSError("libmms connection error")
-
-  def length(self):
-    return libmms.mmsx_get_length(self.mms)
-
-  def duration(self):
-    return libmms.mmsx_get_time_length(self.mms)
-
-  def seekable(self):
-    return libmms.mmsx_get_seekable(self.mms)
-
-  def read(self):
-    buffer = create_string_buffer(4096)
-    count = libmms.mmsx_read(0, self.mms, buffer, 4096)
-    if bytes < 0:
-      raise MMSError("libmms read error")
-    return buffer[:count]
-
-  def data(self):
-    while True:
-      data = self.read()
-      if data:
-        yield data
-      else:
-        break
-
-  def close(self):
-    libmms.mmsx_close(self.mms)
-
-if __name__ == "__main__":
-  stream = MMSStream("mms://demandcnn.stream.aol.com/cnn/world/2002/01/21/jb.shoe.bomb.cafe.cnn.low.asf", 128*1024)
-  print "length =", stream.length()
-  print "duration =", stream.duration()
-  print "seekable =", stream.seekable()
   for data in stream.data():
-    print "read %d bytes" % len(data)
+    f.write(data)
+    bytes_in_duration += len(data)
+    if duration_timer.elapsed() >= 1:
+      bytes_per_second += bytes_in_duration / duration_timer.restart()
+      bytes_per_second /= 2.0
+      seconds_remaining = (stream.length() - stream.position()) / bytes_per_second
+      bytes_in_duration = 0
+
+      if stream.duration():
+        length    = bytes_to_string(stream.length())
+        remaining = seconds_to_string(seconds_remaining)
+      else:
+        length    = -1
+        remaining = -1
+
+      clear = " " * len(status)
+      status = "%s / %s (%s/s, %s remaining)" % (
+        bytes_to_string(stream.position()),
+        bytes_to_string(length),
+        bytes_to_string(bytes_per_second),
+        seconds_to_string(remaining)
+        )
+
+      print "\r", clear, "\r", status,
+      sys.stdout.flush()
+
+      if timeout and timeout_timer.elapsed() > timeout:
+        raise Timeout
+
+  f.close()
+  stream.close()
+    
+if __name__ == "__main__":
+  download("mms://202.96.114.251/lstv", "output.wmv", 128*1024)
+
+##class ProgressThread(Thread):
+
+##  def __init__(self, total):
+##    Thread.__init__(self)
+##    self.queue = Queue(10)
+##    self.total = total
+##    self.count = 0
+
+##  def add(self, count):
+##    self.queue.put(count)
+
+##  def run(self):
+##    while True:
+##      new = self.queue.get()
+##      if new == -1: return
+##      self.count += new
+##      print "\r"
+      
+  
