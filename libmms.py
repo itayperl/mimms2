@@ -58,7 +58,7 @@ class Error(Exception): pass
 class Stream:
 
   def __init__(self, url, bandwidth):
-    self.mms = libmms.mmsx_connect(None, None, url, bandwidth)
+    self.mms = libmms.mmsx_connect(None, None, url, int(bandwidth))
     if not self.mms:
       raise Error("libmms connection error")
 
