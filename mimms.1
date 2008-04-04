@@ -1,66 +1,41 @@
-.TH mimms 1 "2006-08-17" "MiMMS isn't an MMS Sender"
+.TH mimms 1 "2008-04-03" "mms stream downloader"
 .SH NAME
-mimms \- MMS (e.g. mms://) stream downloader
+mimms \- mms (e.g. mms://) stream downloader
 .SH SYNOPSIS
-.BI "mimms [" options "] <" url "> [" output "]"
+.BI "mimms [" options "] <" url "> [" filename "]"
 .SH DESCRIPTION
-MiMMS is a program designed to allow you to download streams using the MMS protocol
-and save them to your computer, as opposed to watching them live. Similar functionality
-is available in full media player suites such as Xine and MPlayer, but MiMMS is quick
-and easy to use, and for the time being, remains a useful program.
+mimms is a program designed to allow you to download streams using the
+MMS protocol and save them to your computer, as opposed to watching them
+live. Similar functionality is available in full media player suites such
+as Xine, MPlayer, and VLC, but mimms is quick and easy to use, and for the
+time being, remains a useful program.
 .SH OPTIONS
 .TP
-.B "-c, --clobber"
-Allow overwriting an existing file; by default, this is not allowed.
-.TP 
-.BI "-t, --time <" minutes ">"
-Record for the given number of minutes;
-by default, record until the end.
-.TP
-.B"-v, --verbose"
-Print verbose debug messages on stderr.
-.TP
-.B "-q, --quiet"
-Don't print status messages on stdout.
+.B "--version"
+show program's version number and exit
 .TP
 .B "-h, --help"
-Show this help message on stdout.
-.SH URL
+show this help message and exit
 .TP
-.B mms (MMS)
-i.e. mms://<host>[:port]/<path>
-will try all supported methods.
+.B "-c, --clobber"
+automatically overwrite an existing file
+.TP 
+.B "-r, --resume"
+attempt to resume a partially downloaded stream
 .TP
-.B mmst (MMS TCP)
-i.e. mmst://<host>[:port]/<path>
-will only try TCP method.
+.BI "-b " BANDWIDTH ", --bandwidth=" BANDWIDTH
+the desired bandwidth for stream selection in BANDWIDTH bytes/s
 .TP
-.B mmsu (MMS UDP)
-Not currently supported; (poorly suited
-for streaming downloads anyway).
+.BI "-t " TIME ", --time=" TIME
+stop downloading after TIME minutes
 .TP
-.B mmsh (MMS HTTP)
-i.e. mmsh://<host>[:port]/<path>
-will only try HTTP method.
+.B "-v, --verbose"
+print verbose debug messages to stderr
 .TP
-.B http (ASX HTTP)
-i.e. http://<host>[:port]/<path>[.asx]
-only the first supported URL is used.
-.TP
-.B - (stdin)
-i.e. look for an MMS URL on stdin;
-only the first supported URL is used.
-.SH OUTPUT
-.TP
-.B none
-Streams to file named based on the URL.
-.TP
-.B filename
-Streams to the given file.
-.TP
-.B - (stdout)
-Streams to stdout. (Implies 
-.B --quiet
-)
+.B "-q, --quiet"
+don't print progress messages to stdout
+.SH URLS
+mimms supports only URLs that are supported by libmms, e.g. mms://, mmsh://, mmst://.
+Previous versions tried to do fancy things with http:// URLs and .asx files, but this
 .SH AUTHOR
 Wesley J. Landaker <wjl@icecavern.net>

@@ -143,7 +143,7 @@ parser = OptionParser(usage=usage,
                       description="mimms is an mms (e.g. mms://) stream downloader")
 parser.add_option("-c", "--clobber",
                   action="store_true", dest="clobber",
-                  help="automatically overwrite a existing files")
+                  help="automatically overwrite an existing file")
 parser.add_option("-r", "--resume",
                   action="store_true", dest="resume",
                   help="attempt to resume a partially downloaded stream")
@@ -153,10 +153,10 @@ parser.add_option("-b", "--bandwidth",
 parser.add_option("-t", "--time",
                   type="int", dest="time",
                   help="stop downloading after TIME minutes")
-parser.add_option("-v",
+parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose",
                   help="print verbose debug messages to stderr")
-parser.add_option("-q",
+parser.add_option("-q", "--quiet",
                   action="store_true", dest="quiet",
                   help="don't print progress messages to stdout")
 
