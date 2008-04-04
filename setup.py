@@ -7,5 +7,5 @@ setup(
   author_email='wjl@icecavern.net.',
   packages=['libmimms'],
   scripts=['mimms'],
-  data_files=[('usr/share/man/man1',['mimms.1'])]
+  data_files=[('share/man/man1',['mimms.1'])]
   )
