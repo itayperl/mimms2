@@ -99,8 +99,8 @@ def download(options):
       bytes_in_duration = 0
 
       if stream.duration():
-        length    = bytes_to_string(stream.length())
-        remaining = seconds_to_string(seconds_remaining)
+        length    = stream.length()
+        remaining = seconds_remaining
       else:
         length    = -1
         remaining = -1
@@ -160,13 +160,18 @@ if len(args) > 2: options.filename = args[1]
 else: options.filename = None
   
 try:
-  #"mms://202.96.114.251/lstv", "output.wmv", 128*1024)
   download(options)
 except Timeout:
   if not options.quiet:
     print
     print "Download stopped after user-specified timeout."
+except KeyboardInterrupt:
+  if not options.quiet:
+    print
+    print "Download aborted by user."
 else:
   if not options.quiet:
     print
     print "Download complete!"
+
+#"mms://202.96.114.251/lstv", "output.wmv", 128*1024)
