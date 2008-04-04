@@ -73,6 +73,9 @@ class Stream:
   def seekable(self):
     return libmms.mmsx_get_seekable(self.mms)
 
+  def seek(self, pos):
+    return libmms.mmsx_seek(None, self.mms, pos, 0);
+
   def read(self):
     buffer = create_string_buffer(1000)
     count = libmms.mmsx_read(0, self.mms, buffer, 1000)

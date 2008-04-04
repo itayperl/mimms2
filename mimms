@@ -40,6 +40,7 @@ class Timer:
     return time() - self.start
 
 class Timeout(Exception): pass
+class NotResumeable(Exception): pass
 
 def bytes_to_string(bytes):
   if   bytes < 0:       return "∞ B"
@@ -60,8 +61,9 @@ def get_filename(options):
   if options.filename: filename = options.filename
   else:
     filename = os.path.basename(urlparse(options.url).path)
-    if not filename.endswith(".wmv"): filename += ".wmv"
-  if options.clobber: return filename
+    if not filename.endswith(".wmv") and not filename.endswith(".wma"):
+      filename += ".wmv"
+  if options.clobber or options.resume: return filename
   new_filename = filename
   i = 1
   while os.path.exists(new_filename):
@@ -75,8 +77,17 @@ def download(options):
   sys.stdout.flush()  
 
   stream = Stream(options.url, options.bandwidth)
+
+  if options.resume:
+    if not stream.seekable():
+      raise NotResumeable
+
   filename = get_filename(options)
-  f = open(filename, "w")
+  if options.resume:
+    f = open(filename, "a")
+    stream.seek(f.tell())
+  else:
+    f = open(filename, "w")
 
   clear = " " * len(status)
   status = "%s => %s" % (options.url, filename)
@@ -133,6 +144,9 @@ parser = OptionParser(usage=usage,
 parser.add_option("-c", "--clobber",
                   action="store_true", dest="clobber",
                   help="automatically overwrite a existing files")
+parser.add_option("-r", "--resume",
+                  action="store_true", dest="resume",
+                  help="attempt to resume a partially downloaded stream")
 parser.add_option("-b", "--bandwidth",
                   type="float", dest="bandwidth",
                   help="the desired bandwidth for stream selection in BANDWIDTH bytes/s")
@@ -165,10 +179,14 @@ except Timeout:
   if not options.quiet:
     print
     print "Download stopped after user-specified timeout."
+except NotResumeable:
+  if not options.quiet:
+    print
+  print >> sys.stderr, "Non-seekable streams cannot be resumed."
 except KeyboardInterrupt:
   if not options.quiet:
     print
-    print "Download aborted by user."
+  print >> sys.stderr, "Download aborted by user."
 else:
   if not options.quiet:
     print
