@@ -165,7 +165,7 @@ parser.set_defaults(time=0, bandwidth=1e6)
 if len(args) < 1:
   parser.error("url must be specified")
 elif not args[0].startswith("mms"):
-  parser.error("only mms urls are supported")
+  parser.error("only mms urls (i.e. mms://, mmst://, mmsh://) are supported")
 elif len(args) > 2:
   parser.error("unknown extra arguments: %s" % ' '.join(args[2:]))
 
