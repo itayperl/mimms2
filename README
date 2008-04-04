@@ -22,7 +22,7 @@ mimms 3.x series is implemented entirely in python, and is freed from the
 details of the MMS protocol and architecture dependence, and can focus
 on usability.
 
-Currently mimme has only the following dependencies:
+Currently mimms has only the following dependencies:
 
   * python (>= 2.5) - <http://www.python.org>
   * libmms (>= 0.4) - <http://sourceforge.net/projects/libmms>
