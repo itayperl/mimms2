@@ -22,7 +22,7 @@ VERSION="3.0"
 import os
 import sys
 
-from libmms import Stream
+from libmimms.libmms import Stream
 from optparse import OptionParser
 from time import time
 from urlparse import urlparse
@@ -192,4 +192,3 @@ else:
     print
     print "Download complete!"
 
-#"mms://202.96.114.251/lstv", "output.wmv", 128*1024)
