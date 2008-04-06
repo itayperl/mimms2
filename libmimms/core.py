@@ -59,11 +59,11 @@ class Timer:
 
 def bytes_to_string(bytes):
   "Given a number of bytes, return a string representation."
-  if   bytes < 0:       return "∞ B"
-  if   bytes < 1024:    return "%.2f B"   % (bytes)
-  elif bytes < 1024**2: return "%.2f KiB" % (bytes/1024.0)
-  elif bytes < 1024**3: return "%.2f MiB" % (bytes/1024.0**2)
-  else:                 return "%.2f GiB" % (bytes/1024.0**3)
+  if   bytes < 0:   return "∞ B"
+  if   bytes < 1e3: return "%.2f B"  % (bytes)
+  elif bytes < 1e6: return "%.2f kB" % (bytes/1e3)
+  elif bytes < 1e9: return "%.2f MB" % (bytes/1e6)
+  else:             return "%.2f GB" % (bytes/1e9)
 
 def seconds_to_string(seconds):
   "Given a number of seconds, return a string representation."

@@ -95,8 +95,8 @@ class Stream:
 
   def read(self):
     "Read a block of data from the stream."
-    buffer = create_string_buffer(1000)
-    count = libmms.mmsx_read(0, self.mms, buffer, 1000)
+    buffer = create_string_buffer(1024)
+    count = libmms.mmsx_read(0, self.mms, buffer, 1024)
     if count < 0:
       raise Error("libmms read error")
     return buffer[:count]
