@@ -1,8 +1,8 @@
 mimms (3.0-2) unstable; urgency=low
 
-  * Fix build dependencies
+  * Fix debhelper (and other) build dependencies (closes: #474377)
 
- -- Wesley J. Landaker <wjl@icecavern.net>  Sat, 05 Apr 2008 10:35:19 -0600
+ -- Wesley J. Landaker <wjl@icecavern.net>  Sat, 05 Apr 2008 10:39:34 -0600
 
 mimms (3.0-1) unstable; urgency=low
 

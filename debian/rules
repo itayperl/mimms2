@@ -26,6 +26,7 @@ clean:
 	dh_testroot
 	python setup.py clean
 	rm -rf build build-stamp install-stamp
+	find . -name "*.pyc" -exec rm {} \;
 	dh_clean 
 
 binary-indep: build install
