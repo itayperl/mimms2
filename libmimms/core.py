@@ -23,7 +23,7 @@ from optparse import OptionParser
 from time import time
 from urlparse import urlparse
 
-import .libmms
+from . import libmms
 
 VERSION="3.0"
 
@@ -77,7 +77,7 @@ def get_filename(options):
   else:
     filename = os.path.basename(urlparse(options.url).path)
     # assume .wmv if there is no extention
-    if not filename.contains("."): filename += ".wmv"
+    if filename.find(".") == -1: filename += ".wmv"
 
   # if we are clobbering or resuming a file, use the filename directly
   if options.clobber or options.resume: return filename
@@ -123,11 +123,20 @@ def download(options):
 
   for data in stream.data():
     f.write(data)
+
+    # keep track of the number of bytes handled in the current duration
     bytes_in_duration += len(data)
+
+    # every duration, update progress bar
     if duration_timer.elapsed() >= 1:
+
+      # calculate a weighted average over 10 durations
+      bytes_per_second *= 9;
       bytes_per_second += bytes_in_duration / duration_timer.restart()
-      bytes_per_second /= 2.0
+      bytes_per_second /= 10.0
       seconds_remaining = (stream.length() - stream.position()) / bytes_per_second
+
+      # reset the byte counter to prepare for the next duration
       bytes_in_duration = 0
 
       # if the stream has no duration, then we can't tell the stream length
