@@ -25,7 +25,7 @@ from urlparse import urlparse
 
 from . import libmms
 
-VERSION="3.0"
+VERSION="3.1"
 
 class Timeout(Exception):
   "Raised when a user-defined timeout has occurred."
