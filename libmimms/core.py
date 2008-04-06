@@ -178,6 +178,8 @@ def download(options):
   stream.close()
 
 def run(argv):
+  "Run the main mimms program with the given command-line arguments."
+
   usage = "usage: %prog [options] <url> [filename]"
   parser = OptionParser(
     usage=usage,
