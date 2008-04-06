@@ -19,4 +19,4 @@
 
 import sys
 from libmimms.core import run
-run(sys.argv)
+run(sys.argv[1:])
