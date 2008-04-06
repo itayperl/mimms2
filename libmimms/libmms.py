@@ -16,6 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+This module uses ctypes to interface to libmms. Currently, it just
+exposes the mmsx interface, since this one is the most flexible.
+"""
+
 from ctypes import *
 
 libmms = cdll.LoadLibrary("libmms.so.0")
@@ -51,31 +56,45 @@ libmms.mmsx_time_seek.restype = c_int
 libmms.mmsx_read.argtypes = [c_void_p, c_void_p, c_char_p, c_int]
 libmms.mmsx_read.restype = c_int
 
-class Error(Exception): pass
+class Error(Exception):
+  "Encapsulates a libmms error."
+  pass
 
 class Stream:
+  "Simple class wrapper for libmms using mmsx calls."
 
   def __init__(self, url, bandwidth):
+    "Connect to the given URL, prefering the given bandwidth."
     self.mms = libmms.mmsx_connect(None, None, url, int(bandwidth))
     if not self.mms:
       raise Error("libmms connection error")
 
   def length(self):
+    "Return the length of the stream, in bytes."
     return libmms.mmsx_get_length(self.mms)
 
   def position(self):
+    "Return the current position of the stream, in bytes."
     return libmms.mmsx_get_current_pos(self.mms)
 
   def duration(self):
+    "Return the duration of the stream, in (fractional) seconds."
     return libmms.mmsx_get_time_length(self.mms)
 
   def seekable(self):
+    "Return whether or not the stream is seekable."
     return libmms.mmsx_get_seekable(self.mms)
 
   def seek(self, pos):
+    "Seek to the given position in the stream, in bytes."
     return libmms.mmsx_seek(None, self.mms, pos, 0);
 
+  def time_seek(self, time):
+    "Seek to the given time in the stream, in (fractional) seconds."
+    return libmms.mmsx_time_seek(None, self.mms, float(time));
+
   def read(self):
+    "Read a block of data from the stream."
     buffer = create_string_buffer(1000)
     count = libmms.mmsx_read(0, self.mms, buffer, 1000)
     if count < 0:
@@ -83,6 +102,7 @@ class Stream:
     return buffer[:count]
 
   def data(self):
+    "Create a generator for reading all data in the stream."
     while True:
       data = self.read()
       if data:
@@ -91,4 +111,6 @@ class Stream:
         break
 
   def close(self):
+    "Close the stream."
     libmms.mmsx_close(self.mms)
+
