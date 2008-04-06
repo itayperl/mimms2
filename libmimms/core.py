@@ -126,7 +126,7 @@ def download(options):
   bytes_in_duration = 0
   bytes_per_second  = 0
 
-  for data in stream.data():
+  for data in stream:
     f.write(data)
 
     # keep track of the number of bytes handled in the current duration

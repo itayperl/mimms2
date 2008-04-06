@@ -101,8 +101,8 @@ class Stream:
       raise Error("libmms read error")
     return buffer[:count]
 
-  def data(self):
-    "Create a generator for reading all data in the stream."
+  def __iter__(self):
+    "Iterate over all the data in the stream."
     while True:
       data = self.read()
       if data:

@@ -3,6 +3,8 @@ mimms 3.2 unreleased
 
   * Use SI units in progress bar, and native sizes in buffers.
 
+  * Removed libmms.Stream.data; instead, Stream can just be iterated.
+
 mimms 3.1 released 2008-04-06
 ---------
 
