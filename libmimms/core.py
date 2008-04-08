@@ -139,10 +139,13 @@ def download(options):
       bytes_per_second *= 9;
       bytes_per_second += bytes_in_duration / duration_timer.restart()
       bytes_per_second /= 10.0
-      seconds_remaining = (stream.length() - stream.position()) / bytes_per_second
 
       # reset the byte counter to prepare for the next duration
       bytes_in_duration = 0
+
+      # estimate the number of seconds remaining
+      bytes_remaining = stream.length() - stream.position()
+      seconds_remaining = bytes_remaining / bytes_per_second
 
       # if the stream has no duration, then we can't tell the stream length
       # or estimate the download time remaining
