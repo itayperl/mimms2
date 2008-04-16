@@ -9,7 +9,7 @@ build-stamp: $(PYVERS:%=build-python%)
 
 build-python%:
 	dh_testdir
-	python$* setup.py build
+	make PYTHON=python$*
 
 install: build install-stamp
 
@@ -19,15 +19,18 @@ install-stamp: $(PYVERS:%=install-python%)
 install-python%:
 	dh_testdir
 	dh_testroot
-	python$* setup.py install --root $(CURDIR)/debian/mimms
+	make PYTHON=python$* DESTDIR=$(CURDIR)/debian/mimms
 
-clean:
+clean: $(PYVERS:%=clean-python%)
 	dh_testdir
 	dh_testroot
-	python setup.py clean
-	rm -rf build build-stamp install-stamp
-	find . -name "*.pyc" -exec rm {} \;
+	rm -rf build-stamp install-stamp
 	dh_clean 
+
+clean-python%:
+	dh_testdir
+	dh_testroot
+	make PYTHON=python$* clean
 
 binary-indep: build install
 	dh_testdir
