@@ -10,4 +10,4 @@ install:
 clean:
 	$(PYTHON) setup.py clean
 	rm -rf build
-	find . -name "*.pyc" -exec rm {} \;
+	find . \( -name "*.pyc" -or -name "*~" \) -exec rm {} \;
