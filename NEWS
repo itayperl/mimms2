@@ -1,4 +1,4 @@
-mimms 3.2 unreleased
+mimms 3.2 released 2008-04-15
 ---------
 
   * Use SI units in progress bar, and native sizes in buffers.
