@@ -1,3 +1,8 @@
+mimms 3.2.1 released 2008-05-11
+-----------
+
+  * Correctly use filename argument; it was ignored because of a bug.
+
 mimms 3.2 released 2008-04-15
 ---------
 
