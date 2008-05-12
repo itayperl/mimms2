@@ -224,7 +224,7 @@ def run(argv):
     parser.error("unknown extra arguments: %s" % ' '.join(args[2:]))
   
   options.url = args[0]
-  if len(args) > 2: options.filename = args[1]
+  if len(args) > 1: options.filename = args[1]
   else: options.filename = None
     
   try:
