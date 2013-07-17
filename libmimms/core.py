@@ -27,7 +27,7 @@ import sys
 
 from optparse import OptionParser
 from time import time
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from . import libmms
 
@@ -107,7 +107,7 @@ def download(options):
 	  return download_threaded(options)
 
   status = "Connecting ..."
-  if not options.quiet: print status,
+  if not options.quiet: print(status, end="")
   sys.stdout.flush()  
 
   stream = libmms.Stream(options.url, options.bandwidth)
@@ -118,15 +118,15 @@ def download(options):
 
   filename = get_filename(options)
   if options.resume:
-    f = open(filename, "a")
+    f = open(filename, "ab")
     stream.seek(f.tell())
   else:
-    f = open(filename, "w")
+    f = open(filename, "wb")
 
   clear = " " * len(status)
   status = "%s => %s" % (options.url, filename)
-  if not options.quiet: print "\r", clear, "\r", status
-  sys.stdout.flush()  
+  if not options.quiet: print("\r {} \r {}".format(clear, status))
+  sys.stdout.flush()
 
   timeout_timer  = Timer()
   duration_timer = Timer()
@@ -179,7 +179,7 @@ def download(options):
         seconds_to_string(remaining)
         )
 
-      if not options.quiet: print "\r", clear, "\r", status,
+      if not options.quiet: print("\r {} \r {}".format(clear, status), end="")
       sys.stdout.flush()
 
       if options.time and timeout_timer.elapsed() > (options.time*60):
@@ -190,7 +190,7 @@ def download(options):
 
 def download_threaded(options):
   conn_count = options.connections_count
-  print "Using %s parallel connections" % conn_count
+  print("Using %s parallel connections" % conn_count)
 
   multiprocessing.freeze_support()
 
@@ -216,9 +216,9 @@ def download_threaded(options):
 
   filename = get_filename(options)
   status = "%s => %s" % (options.url, filename)
-  print status
+  print(status)
 
-  f = open(filename, "w")
+  f = open(filename, "wb+")
   for x in imap_it:
     f.write(x)
   f.close()
@@ -228,7 +228,7 @@ def download_stream_part(args):
   size = end - start
   stream = libmms.Stream(url, bandwidth)
   stream.seek(start)
-  collect = ""
+  collect = b""
   for data in stream:
     if len(collect) > size:
       break
@@ -292,21 +292,31 @@ def run(argv):
     download(options)
   except Timeout:
     if not options.quiet:
-      print
-      print "Download stopped after user-specified timeout."
+      print()
+      print("Download stopped after user-specified timeout.")
   except NotResumeableError:
     if not options.quiet:
-      print
-    print >> sys.stderr, "Non-seekable streams cannot be resumed."
+      print()
+    print("Non-seekable streams cannot be resumed.", file=sys.stderr)
   except KeyboardInterrupt:
     if not options.quiet:
-      print
-    print >> sys.stderr, "Download aborted by user."
-  except libmms.Error, e:
-    print >> sys.stderr, "libmms error:", e.message
+      print()
+    print("Download aborted by user.", file=sys.stderr)
+  except libmms.Error as e:
+    print("libmms error: {}".format(e.message), file=sys.stderr)
   except NonSeekableError:
-    print "Error: Cannot use parallel connections on non-seekable stream"
+    print("Cannot use parallel connections on non-seekable stream")
   else:
     if not options.quiet:
-      print
-      print "Download complete!"
+      print()
+      print("Download complete!")
+
+
+
+
+
+
+
+
+
+

@@ -65,7 +65,7 @@ class Stream:
 
   def __init__(self, url, bandwidth):
     "Connect to the given URL, prefering the given bandwidth."
-    self.mms = libmms.mmsx_connect(None, None, url, int(bandwidth))
+    self.mms = libmms.mmsx_connect(None, None, url.encode('ascii'), int(bandwidth))
     if not self.mms:
       raise Error("libmms connection error")
 

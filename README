@@ -1,3 +1,6 @@
+Original README
+----------------
+
 mimms is an mms (e.g. mms://) stream downloader
 
 mimms is a program designed to allow you to download streams using the
@@ -24,5 +27,12 @@ on usability.
 
 mimms has the following major dependencies:
 
-  * python (>= 2.5) - <http://www.python.org>
+  * python (>= 3.2) - <http://www.python.org>
   * libmms (>= 0.4) - <http://sourceforge.net/projects/libmms>
+
+Fork additions
+---------------
+
+A few significant changes to the project were made:
+* Mimms was ported to Python 3
+* Mimms now supports a multithreaded download process
