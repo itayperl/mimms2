@@ -21,6 +21,7 @@ This module contains the core implementation of mimms. This exists
 primarily to make it easier to use mimms from other python programs.
 """
 
+import multiprocessing
 import os
 import sys
 
@@ -38,6 +39,10 @@ class Timeout(Exception):
 
 class NotResumeableError(Exception):
   "Raised when a resume is attempted on a non-resumeable stream."
+  pass
+
+class NonSeekableError(Exception):
+  "Raised when multiconnection download is attempted on a non-seekable stream."
   pass
 
 class Timer:
@@ -97,6 +102,9 @@ def get_filename(options):
 
 def download(options):
   "Using the given options, download the stream to a file."
+
+  if options.connections_count > 1:
+	  return download_threaded(options)
 
   status = "Connecting ..."
   if not options.quiet: print status,
@@ -180,6 +188,54 @@ def download(options):
   f.close()
   stream.close()
 
+def download_threaded(options):
+  conn_count = options.connections_count
+  print "Using %s parallel connections" % conn_count
+
+  multiprocessing.freeze_support()
+
+  stream = libmms.Stream(options.url, options.bandwidth)
+
+  if not stream.seekable():
+    raise NonSeekableError()
+
+  stream_size = stream.length()
+  stream.close()
+
+  chunk_size = stream_size // conn_count
+  chunks = []
+  start = 0
+  for _ in range(conn_count - 1):
+    end = start + chunk_size
+    chunks.append((options.url, options.bandwidth, start, start + chunk_size))
+    start = end
+  chunks.append((options.url, options.bandwidth, start, stream_size))
+
+  pool = multiprocessing.Pool(conn_count)
+  imap_it = pool.imap(download_stream_part, chunks)
+
+  filename = get_filename(options)
+  status = "%s => %s" % (options.url, filename)
+  print status
+
+  f = open(filename, "w")
+  for x in imap_it:
+    f.write(x)
+  f.close()
+
+def download_stream_part(args):
+  url, bandwidth, start, end = args
+  size = end - start
+  stream = libmms.Stream(url, bandwidth)
+  stream.seek(start)
+  collect = ""
+  for data in stream:
+    if len(collect) > size:
+      break
+    else:
+      collect += data
+  return collect[:size]	
+
 def run(argv):
   "Run the main mimms program with the given command-line arguments."
 
@@ -212,8 +268,13 @@ def run(argv):
     "-q", "--quiet",
     action="store_true", dest="quiet",
     help="don't print progress messages to stdout")
-  
-  parser.set_defaults(time=0, bandwidth=1e6)
+  parser.add_option(
+    "-n", "--num-connections",
+    type="int", dest="connections_count",
+    help=("number of parallel connections to use " +
+		  "(warning: usage of 2+ connections discards all other command-line options"))
+
+  parser.set_defaults(time=0, bandwidth=1e6, connections_count=1)
   (options, args) = parser.parse_args(argv)
   if len(args) < 1:
     parser.error("url must be specified")
@@ -243,6 +304,8 @@ def run(argv):
     print >> sys.stderr, "Download aborted by user."
   except libmms.Error, e:
     print >> sys.stderr, "libmms error:", e.message
+  except NonSeekableError:
+    print "Error: Cannot use parallel connections on non-seekable stream"
   else:
     if not options.quiet:
       print
