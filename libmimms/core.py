@@ -104,7 +104,6 @@ def download(options):
   "Using the given options, download the stream to a file."
 
   if options.connections_count > 1:
-	  print "Starting threaded download"
 	  return download_threaded(options)
 
   status = "Connecting ..."
@@ -190,45 +189,44 @@ def download(options):
   stream.close()
 
 def download_threaded(options):
-  print "Using 2 parallel connections"
+  conn_count = options.connections_count
+  print "Using %s parallel connections" % conn_count
 
   multiprocessing.freeze_support()
 
   stream = libmms.Stream(options.url, options.bandwidth)
-  print "connected to stream"
 
   if not stream.seekable():
     raise NonSeekableError()
 
-  size = stream.length()
+  stream_size = stream.length()
   stream.close()
 
-  print "stream size =", bytes_to_string(size)
+  chunk_size = stream_size // conn_count
+  chunks = []
+  start = 0
+  for _ in range(conn_count - 1):
+    end = start + chunk_size
+    chunks.append((options.url, options.bandwidth, start, start + chunk_size))
+    start = end
+  chunks.append((options.url, options.bandwidth, start, stream_size))
+
+  pool = multiprocessing.Pool(conn_count)
+  imap_it = pool.imap(download_stream_part, chunks)
 
   filename = get_filename(options)
+  status = "%s => %s" % (options.url, filename)
+  print status
+
   f = open(filename, "w")
-
-  pool = multiprocessing.Pool(2)
-  print 'pool = %s' % pool
-
-  half = size // 2
-
-  TASKS = [(options.url, options.bandwidth, 0, half),
-		   (options.url, options.bandwidth, half, size)]
-
-  imap_it = pool.imap(download_stream_part, TASKS)
-
   for x in imap_it:
     f.write(x)
-  print
+  f.close()
 
 def download_stream_part(args):
   url, bandwidth, start, end = args
   size = end - start
-  proc_name = multiprocessing.current_process().name
-  print proc_name, "is in download_stream_part"
   stream = libmms.Stream(url, bandwidth)
-  print proc_name, "had connected to stream"
   stream.seek(start)
   collect = ""
   for data in stream:
