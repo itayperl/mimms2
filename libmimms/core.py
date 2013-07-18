@@ -215,7 +215,7 @@ def download_threaded(options):
   imap_it = pool.imap(download_stream_part, chunks)
 
   filename = get_filename(options)
-  status = "%s => %s" % (options.url, filename)
+  status = "%s (%s) => %s" % (options.url, bytes_to_string(stream_size), filename)
   print(status)
 
   f = open(filename, "wb+")
