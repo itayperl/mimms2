@@ -194,7 +194,8 @@ def download(options):
 
 def download_threaded(options):
   conn_count = options.connections_count
-  print("Using %s parallel connections" % conn_count)
+  if not options.quiet:
+    print("Using %s parallel connections" % conn_count)
 
   multiprocessing.freeze_support()
 
@@ -221,8 +222,9 @@ def download_threaded(options):
   imap_it = pool.imap(download_stream_part, chunks)
 
   filename = get_filename(options)
-  status = "%s (%s) => %s" % (options.url, bytes_to_string(stream_size), filename)
-  print(status)
+  if not options.quiet:
+    status = "%s (%s) => %s" % (options.url, bytes_to_string(stream_size), filename)
+    print(status)
 
   f = open(filename, "wb+")
   for x in imap_it:
@@ -302,31 +304,17 @@ def run(argv):
     download(options)
   except Timeout:
     if not options.quiet:
-      print()
       print("Download stopped after user-specified timeout.")
   except NotResumeableError:
     if not options.quiet:
-      print()
-    print("Non-seekable streams cannot be resumed.", file=sys.stderr)
+      print("Non-seekable streams cannot be resumed.", file=sys.stderr)
   except KeyboardInterrupt:
     if not options.quiet:
-      print()
-    print("Download aborted by user.", file=sys.stderr)
+      print("Download aborted by user.", file=sys.stderr)
   except libmms.Error as e:
     print("libmms error: {}".format(e.message), file=sys.stderr)
   except NonSeekableError:
     print("Cannot use parallel connections on non-seekable stream")
   else:
     if not options.quiet:
-      print()
       print("Download complete!")
-
-
-
-
-
-
-
-
-
-
