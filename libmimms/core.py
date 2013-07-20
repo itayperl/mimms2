@@ -130,6 +130,7 @@ def download(options):
 
   timeout_timer  = Timer()
   duration_timer = Timer()
+  overall_timer = Timer()
 
   bytes_in_duration = 0
   bytes_per_second  = 0
@@ -187,6 +188,9 @@ def download(options):
 
   f.close()
   stream.close()
+  if not options.quiet:
+    print()
+    print("Download time: {}".format(seconds_to_string(overall_timer.elapsed())))
 
 def download_threaded(options):
   conn_count = options.connections_count
@@ -201,6 +205,8 @@ def download_threaded(options):
 
   stream_size = stream.length()
   stream.close()
+
+  duration_timer = Timer()
 
   chunk_size = stream_size // conn_count
   chunks = []
@@ -222,6 +228,10 @@ def download_threaded(options):
   for x in imap_it:
     f.write(x)
   f.close()
+
+  if not options.quiet:
+    print()
+    print("Download time: {}".format(seconds_to_string(duration_timer.elapsed())))
 
 def download_stream_part(args):
   url, bandwidth, start, end = args
