@@ -24,7 +24,6 @@ exposes the mmsx interface, since this one is the most flexible.
 from ctypes import *
 import subprocess
 import os
-from io import open
 
 libmms = cdll.LoadLibrary("libmms.so.0")
 

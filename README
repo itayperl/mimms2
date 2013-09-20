@@ -28,6 +28,7 @@ on usability.
 mimms has the following major dependencies:
 
   * python (>= 2.7) - <http://www.python.org>
+  * python-progressbar - <https://pypi.python.org/pypi/progressbar/2.3-dev>
   * libmms (>= 0.4) - <http://sourceforge.net/projects/libmms>
 
 Fork additions
