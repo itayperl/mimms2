@@ -22,8 +22,25 @@ exposes the mmsx interface, since this one is the most flexible.
 """
 
 from ctypes import *
+import subprocess
+import os
 
 libmms = cdll.LoadLibrary("libmms.so.0")
+
+def find_off_t_type():
+  """Attempt to find the offset size used in the libmms build."""
+  try:
+    includedir = subprocess.check_output(['pkg-config', '--variable=includedir', 'libmms']).strip()
+    with open(os.path.join(includedir, 'libmms/mms_config.h'), 'r') as config_file:
+      config = config_file.read()
+      if 'undef LIBMMS_HAVE_64BIT_OFF_T' in config:
+          return c_long
+      else:
+          return c_longlong
+  except OSError:
+    return c_longlong
+
+off_t = find_off_t_type()
 
 # opening and closing the stream
 libmms.mmsx_connect.argtypes = [c_void_p, c_void_p, c_char_p, c_int]
@@ -34,7 +51,7 @@ libmms.mmsx_close.restype = None
 
 # querying length and position
 libmms.mmsx_get_current_pos.argtypes = [c_void_p]
-libmms.mmsx_get_current_pos.restype = c_longlong
+libmms.mmsx_get_current_pos.restype = off_t
 
 libmms.mmsx_get_length.argtypes = [c_void_p]
 libmms.mmsx_get_length.restype = c_uint
@@ -46,8 +63,8 @@ libmms.mmsx_get_time_length.restype = c_double
 libmms.mmsx_get_seekable.argtypes = [c_void_p]
 libmms.mmsx_get_seekable.restype = c_int
 
-libmms.mmsx_seek.argtypes = [c_void_p, c_void_p, c_longlong, c_int]
-libmms.mmsx_seek.restype = c_longlong
+libmms.mmsx_seek.argtypes = [c_void_p, c_void_p, off_t, c_int]
+libmms.mmsx_seek.restype = off_t
 
 libmms.mmsx_time_seek.argtypes = [c_void_p, c_void_p, c_double]
 libmms.mmsx_time_seek.restype = c_int
