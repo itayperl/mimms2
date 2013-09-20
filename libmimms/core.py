@@ -181,7 +181,7 @@ def run(argv):
   parser.add_option(
     "-r", "--resume",
     action="store_true", dest="resume",
-    help="attempt to resume a partially downloaded stream")
+    help="attempt to resume a partially downloaded stream (BROKEN)")
   parser.add_option(
     "-b", "--bandwidth",
     type="float", dest="bandwidth",
@@ -201,8 +201,7 @@ def run(argv):
   parser.add_option(
     "-n", "--num-connections",
     type="int", dest="connections_count",
-    help=("number of parallel connections to use " +
-		  "(warning: usage of 2+ connections discards all other command-line options"))
+    help=("number of parallel connections to use."))
 
   parser.set_defaults(time=0, bandwidth=1e6, connections_count=1)
   (options, args) = parser.parse_args(argv)
