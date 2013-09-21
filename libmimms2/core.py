@@ -34,7 +34,7 @@ from urlparse import urlparse
 
 from . import libmms
 
-VERSION="3.2.1"
+VERSION="1.0"
 
 # Terminology:
 # Part - a part of the stream downloaded in parallel
@@ -165,14 +165,14 @@ def download_stream_part(part, queue):
       if stream.position() >= end:
         break
 
-def run(argv):
+def main():
   "Run the main mimms program with the given command-line arguments."
 
   usage = "usage: %prog [options] <url> [filename]"
   parser = OptionParser(
     usage=usage,
     version=("%%prog %s" % VERSION),
-    description="mimms is an mms (e.g. mms://) stream downloader")
+    description="mimms2 is an mms (e.g. mms://) stream downloader")
   parser.add_option(
     "-n", "--num-connections",
     type="int", dest="connections_count",
@@ -199,7 +199,7 @@ def run(argv):
     help="don't print progress messages to stdout")
 
   parser.set_defaults(time=0, bandwidth=1e6, connections_count=10)
-  (options, args) = parser.parse_args(argv)
+  (options, args) = parser.parse_args(sys.argv[1:])
   if len(args) < 1:
     parser.error("url must be specified")
   elif not args[0].startswith("mms"):

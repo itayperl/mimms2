@@ -1,3 +1,8 @@
+mimms2 is a fork of mimms-3.2.1:
+* Parallel downloading is supported (try -n 50)
+* Refactoring. Use python-progressbar instead of a custom progressbar
+* Support for Python 3
+
 Original README
 ----------------
 
@@ -25,14 +30,8 @@ mimms 3.x series is implemented entirely in python, and is freed from the
 details of the MMS protocol and architecture dependence, and can focus
 on usability.
 
-mimms has the following major dependencies:
+mimms2 has the following major dependencies:
 
   * python (>= 2.7) - <http://www.python.org>
   * python-progressbar - <https://pypi.python.org/pypi/progressbar/2.3-dev>
   * libmms (>= 0.4) - <http://sourceforge.net/projects/libmms>
-
-Fork additions
----------------
-
-A few significant changes to the project were made:
-* Mimms now supports a multithreaded download process

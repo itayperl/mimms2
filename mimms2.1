@@ -1,14 +1,13 @@
-.TH mimms 1 "2008-04-06" "mms stream downloader"
+.TH mimms2 1 "2008-04-06" "mms stream downloader"
 .SH NAME
-mimms \- mms (e.g. mms://) stream downloader
+mimms2 \- mms (e.g. mms://) stream downloader
 .SH SYNOPSIS
-.BI "mimms [" options "] <" url "> [" filename "]"
+.BI "mimms2 [" options "] <" url "> [" filename "]"
 .SH DESCRIPTION
-mimms is a program designed to allow you to download streams using the
+mimms2 is a program designed to allow you to download streams using the
 MMS protocol and save them to your computer, as opposed to watching them
-live. Similar functionality is available in full media player suites such
-as Xine, MPlayer, and VLC, but mimms is quick and easy to use and, for the
-time being, remains a useful program.
+live. mimms2 provides a convenient command-line interface, and can attain
+high transfer rates by downloading in parallel.
 .SH OPTIONS
 .TP
 .B "--version"
@@ -17,11 +16,11 @@ show program's version number and exit
 .B "-h, --help"
 show this help message and exit
 .TP
+.BI "-n " CONNECTIONS_COUNT ", --num-connections=" CONNECTIONS_COUNT
+number of parallel connections to use.
+.TP
 .B "-c, --clobber"
 automatically overwrite an existing file
-.TP 
-.B "-r, --resume"
-attempt to resume a partially downloaded stream
 .TP
 .BI "-b " BANDWIDTH ", --bandwidth=" BANDWIDTH
 the desired bandwidth for stream selection in BANDWIDTH bytes/s
@@ -35,7 +34,7 @@ print verbose debug messages to stderr
 .B "-q, --quiet"
 don't print progress messages to stdout
 .SH URLS
-mimms supports only URLs that are supported by libmms, e.g. mms://, mmsh://, mmst://.
+mimms2 supports only URLs that are supported by libmms, e.g. mms://, mmsh://, mmst://.
 Previous versions tried to do fancy things with http:// URLs and .asx files, but this version does not (yet?) support that.
 .SH AUTHOR
 Wesley J. Landaker <wjl@icecavern.net>
