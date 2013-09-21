@@ -36,14 +36,13 @@ from . import libmms
 
 VERSION="3.2.1"
 
-CHUNK_SIZE = 64 * 1024
+# Terminology:
+# Part - a part of the stream downloaded in parallel
+# Chunk - amount of data to buffer in each thread before writing to disk
+CHUNK_SIZE = 16 * 1024
 
 class Timeout(Exception):
   "Raised when a user-defined timeout has occurred."
-  pass
-
-class NotResumeableError(Exception):
-  "Raised when a resume is attempted on a non-resumeable stream."
   pass
 
 class NonSeekableError(Exception):
@@ -70,7 +69,7 @@ def get_filename(options):
     if filename.find(".") == -1: filename += ".wmv"
 
   # if we are clobbering or resuming a file, use the filename directly
-  if options.clobber or options.resume: return filename
+  if options.clobber: return filename
 
   # otherwise, we need to pick a new filename that isn't used
   new_filename = filename
@@ -133,8 +132,6 @@ def download(options):
   "Using the given options, download the stream to a file."
 
   conn_count = options.connections_count
-  if options.resume:
-    raise NotImplementedError('--resume is currently broken.')
 
   filename = get_filename(options)
   if not options.quiet:
@@ -143,28 +140,30 @@ def download(options):
   download_threaded(options.url, options.bandwidth, filename,
                     conn_count=conn_count, timeout=options.time, verbose=not options.quiet)
 
-def download_stream_part((url, bandwidth, start, end), queue):
+def download_stream_part(part, queue):
+  url, bandwidth, start, end = part
   if start == end:
     return
 
-  stream = libmms.Stream(url, bandwidth)
-  new_pos = stream.seek(start)
-  # Odd bug, ugly workaround.
-  if new_pos != start and start > 0:
-    new_pos = stream.seek(start - 1)
-  assert new_pos == start, 'Seek failed!'
+  with closing(libmms.Stream(url, bandwidth)) as stream:
+    new_pos = stream.seek(start)
+    # Odd bug, ugly workaround.
+    if new_pos != start and start > 0:
+      new_pos = stream.seek(start - 1)
+    assert new_pos == start, 'Seek failed!'
 
-  cur_chunk = ''
-  for data in stream:
-    prev_pos = stream.position() - len(data)
-    cur_chunk += data[:end - prev_pos]
-      
-    if cur_chunk >= CHUNK_SIZE or stream.position() >= end:
-      queue.put((cur_chunk, prev_pos))
-      cur_chunk = ''
-
-    if stream.position() >= end:
-      break
+    cur_chunk = b''
+    chunk_offset = start
+    for data in stream:
+      prev_pos = stream.position() - len(data)
+      cur_chunk += data[:end - prev_pos]
+        
+      if len(cur_chunk) >= CHUNK_SIZE or stream.position() >= end:
+        queue.put((cur_chunk, chunk_offset))
+        cur_chunk = b''
+        chunk_offset = stream.position()
+      if stream.position() >= end:
+        break
 
 def run(argv):
   "Run the main mimms program with the given command-line arguments."
@@ -175,13 +174,13 @@ def run(argv):
     version=("%%prog %s" % VERSION),
     description="mimms is an mms (e.g. mms://) stream downloader")
   parser.add_option(
+    "-n", "--num-connections",
+    type="int", dest="connections_count",
+    help=("number of parallel connections to use [default=10]"))
+  parser.add_option(
     "-c", "--clobber",
     action="store_true", dest="clobber",
     help="automatically overwrite an existing file")
-  parser.add_option(
-    "-r", "--resume",
-    action="store_true", dest="resume",
-    help="attempt to resume a partially downloaded stream (BROKEN)")
   parser.add_option(
     "-b", "--bandwidth",
     type="float", dest="bandwidth",
@@ -198,12 +197,8 @@ def run(argv):
     "-q", "--quiet",
     action="store_true", dest="quiet",
     help="don't print progress messages to stdout")
-  parser.add_option(
-    "-n", "--num-connections",
-    type="int", dest="connections_count",
-    help=("number of parallel connections to use."))
 
-  parser.set_defaults(time=0, bandwidth=1e6, connections_count=1)
+  parser.set_defaults(time=0, bandwidth=1e6, connections_count=10)
   (options, args) = parser.parse_args(argv)
   if len(args) < 1:
     parser.error("url must be specified")
@@ -222,9 +217,6 @@ def run(argv):
   except Timeout:
     if not options.quiet:
       print "Download stopped after user-specified timeout."
-  except NotResumeableError:
-    if not options.quiet:
-      print >>sys.stderr, "Non-seekable streams cannot be resumed."
   except KeyboardInterrupt:
     if not options.quiet:
       print >>sys.stderr, "Download aborted by user."

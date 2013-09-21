@@ -31,7 +31,7 @@ def find_off_t_type():
   """Attempt to find the offset size used in the libmms build."""
   try:
     includedir = subprocess.check_output(['pkg-config', '--variable=includedir', 'libmms']).strip()
-    with open(os.path.join(includedir, 'libmms/mms_config.h'), 'r') as config_file:
+    with open(os.path.join(includedir, b'libmms/mms_config.h'), 'r') as config_file:
       config = config_file.read()
       if 'undef LIBMMS_HAVE_64BIT_OFF_T' in config:
           return c_long
