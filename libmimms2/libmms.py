@@ -59,6 +59,9 @@ libmms.mmsx_get_length.restype = c_uint
 libmms.mmsx_get_time_length.argtypes = [c_void_p]
 libmms.mmsx_get_time_length.restype = c_double
 
+libmms.mmsx_get_asf_packet_len.argtype = [c_void_p]
+libmms.mmsx_get_asf_packet_len.restype = c_uint64
+
 # seeking
 libmms.mmsx_get_seekable.argtypes = [c_void_p]
 libmms.mmsx_get_seekable.restype = c_int
@@ -109,6 +112,9 @@ class Stream(object):
   def time_seek(self, time):
     "Seek to the given time in the stream, in (fractional) seconds."
     return libmms.mmsx_time_seek(None, self.mms, float(time));
+
+  def get_asf_packet_len(self):
+    return libmms.mmsx_get_asf_packet_len(self.mms)
 
   def read(self):
     "Read a block of data from the stream."

@@ -84,16 +84,19 @@ def download_threaded(url, bandwidth, filename, conn_count=1, timeout=0, verbose
     if not stream.seekable():
       conn_count = 1
     stream_size = stream.length()
+    packet_len = stream.get_asf_packet_len()
+  
+  # Don't allow a single part to be smaller than a single packet.
+  max_conn_count = stream_size // packet_len
+  conn_count = min(conn_count, max_conn_count)
+  part_size = stream_size // conn_count
+  parts = []
+  start = 0
 
-    part_size = stream_size // conn_count
-    parts = []
-    start = 0
-
-    for _ in xrange(conn_count - 1):
-      end = stream.seek(start + part_size)
-      parts.append((url, bandwidth, start, end))
-      start = end
-    parts.append((url, bandwidth, start, stream_size))
+  for _ in xrange(conn_count - 1):
+    parts.append((url, bandwidth, start, start + part_size))
+    start += part_size
+  parts.append((url, bandwidth, start, stream_size))
 
   queue = multiprocessing.Queue()
   pool = multiprocessing.Pool(conn_count)
@@ -147,16 +150,19 @@ def download_stream_part(part, queue):
 
   with closing(libmms.Stream(url, bandwidth)) as stream:
     new_pos = stream.seek(start)
-    # Odd bug, ugly workaround.
-    if new_pos != start and start > 0:
-      new_pos = stream.seek(start - 1)
-    assert new_pos == start, 'Seek failed!'
+
+    # The following happens for some reason.
+    if new_pos > start:
+      assert start > 0, 'Expected seek(0) to be exact'
+      new_pos = stream.seek(start - stream.get_asf_packet_len())
+    assert 0 <= new_pos <= start, 'Seek failed! seek %d new pos %d end %d' % (start, new_pos, stream.length())
 
     cur_chunk = b''
     chunk_offset = start
     for data in stream:
       prev_pos = stream.position() - len(data)
-      cur_chunk += data[:end - prev_pos]
+      start_chop = start - prev_pos if prev_pos < start else 0
+      cur_chunk += data[start_chop:end - prev_pos]
         
       if len(cur_chunk) >= CHUNK_SIZE or stream.position() >= end:
         queue.put((cur_chunk, chunk_offset))
