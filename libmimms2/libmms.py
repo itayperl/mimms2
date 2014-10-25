@@ -37,7 +37,7 @@ def find_off_t_type():
           return c_long
       else:
           return c_longlong
-  except OSError:
+  except (OSError, subprocess.CalledProcessError):
     return c_longlong
 
 off_t = find_off_t_type()
